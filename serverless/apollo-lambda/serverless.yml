@@ -1,0 +1,34 @@
+org: ezeikel
+app: black-history-api
+service: apollo-lambda
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  lambdaHashingVersion: 20201221
+
+plugins:
+ - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.blackhistory.fyi
+    basePath: graphql
+    createRoute53Record: true
+
+functions:
+  graphql:
+    # this is formatted as <FILENAME>.<HANDLER>
+    handler: graphql.graphqlHandler
+    events:
+    - http:
+        path: /
+        method: post
+        cors: true
+    - http:
+        path: /
+        method: get
+        cors: true

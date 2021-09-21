@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "apollo-server-lambda": "^3.3.0",
+    "graphql": "^15.6.0"
+  },
+  "devDependencies": {
+    "serverless-domain-manager": "^5.1.5"
+  }
+}
