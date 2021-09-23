@@ -12,17 +12,21 @@ provider:
 
 plugins:
  - serverless-domain-manager
+ - serverless-plugin-typescript
+ - serverless-offline
 
 custom:
   customDomain:
     domainName: api.blackhistory.fyi
     basePath: graphql
     createRoute53Record: true
+  serverless-offline:
+    printOutput: true
+    prefix: graphql
 
 functions:
   graphql:
-    # this is formatted as <FILENAME>.<HANDLER>
-    handler: graphql.graphqlHandler
+    handler: src/handlers/graphql.handler
     events:
     - http:
         path: /
