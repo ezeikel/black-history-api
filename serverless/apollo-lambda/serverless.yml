@@ -1,6 +1,7 @@
 org: ezeikel
 app: black-history-api
 service: apollo-lambda
+variablesResolutionMode: 20210326
 
 frameworkVersion: '2'
 
@@ -8,12 +9,14 @@ provider:
   name: aws
   runtime: nodejs14.x
   region: eu-west-2
+  environment:
+    DATABASE_URL: ${ssm:/black-history/keys/mongodb}
   lambdaHashingVersion: 20201221
 
 plugins:
- - serverless-domain-manager
- - serverless-plugin-typescript
- - serverless-offline
+  - serverless-domain-manager
+  - serverless-plugin-typescript
+  - serverless-offline
 
 custom:
   customDomain:

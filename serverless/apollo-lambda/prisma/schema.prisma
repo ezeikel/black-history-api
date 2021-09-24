@@ -6,6 +6,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["mongoDb"]
+  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
 }
 
 model Person {

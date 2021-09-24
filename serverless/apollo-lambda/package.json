@@ -5,9 +5,10 @@
   "author": "hi@ezeikel.dev",
   "version": "1.0.0",
   "scripts": {
-    "dev": "NODE_ENV=test sls offline",
-    "prisma-generate": "prisma generate",
-    "prisma-studio": "prisma studio"
+    "dev": "NODE_ENV=test sls offline --aws-profile ezeikel-admin",
+    "deploy": "sls deploy --aws-profile ezeikel-admin",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^3.1.1",
