@@ -14,9 +14,9 @@ provider:
   lambdaHashingVersion: 20201221
 
 plugins:
-  - serverless-domain-manager
-  - serverless-plugin-typescript
+  - serverless-webpack
   - serverless-offline
+  - serverless-domain-manager
 
 custom:
   customDomain:
@@ -26,6 +26,14 @@ custom:
   serverless-offline:
     printOutput: true
     prefix: graphql
+  webpack:
+    webpackConfig: 'webpack.config.js' # Name of webpack configuration file
+    includeModules: true # Node modules configuration for packaging
+    packagerOptions:
+      scripts: # this is the magic
+        - npx prisma generate
+    packager: 'yarn' # Packager that will be used to package your external modules
+    excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
 
 functions:
   graphql:

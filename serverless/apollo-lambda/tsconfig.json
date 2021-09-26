@@ -2,14 +2,18 @@
   "compilerOptions": {
     "preserveConstEnums": true,
     "strictNullChecks": true,
-    "sourceMap": true,
-    "allowJs": true,
-    "target": "es5",
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "target": "es2017",
     "outDir": ".build",
+    "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "lib": [
-      "es2015"
+      "es2017"
     ],
-    "rootDir": "./"
+    "rootDir": "./src",
+    "resolveJsonModule": true
   }
 }

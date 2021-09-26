@@ -1,5 +1,5 @@
 node_modules
 .serverless
 .build
-# Keep environment variables out of version control
-.env
+.webpack
+.webpackCache
