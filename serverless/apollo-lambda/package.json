@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "NODE_ENV=test sls offline --aws-profile ezeikel-admin",
-    "deploy": "sls deploy --aws-profile ezeikel-admin",
+    "deploy": "NODE_ENV=production sls deploy --aws-profile ezeikel-admin",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio"
   },

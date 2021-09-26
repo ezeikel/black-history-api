@@ -1,6 +1,7 @@
 import { ApolloServer, gql } from 'apollo-server-lambda';
 import Query from '../resolvers/Query';
 import Mutation from  '../resolvers/Mutation';
+import { createContext } from '../context';
 
 const typeDefs = gql`
   type Person {
@@ -20,6 +21,13 @@ const resolvers = {
   Mutation,
 };
 
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ event }) => ({
+    headers: event.headers,
+    ...createContext(),
+  })
+});
 
 export const handler = server.createHandler();
