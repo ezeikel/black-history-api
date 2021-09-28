@@ -5,13 +5,18 @@
     "inlineSources": true,
     "inlineSourceMap": true,
     "sourceRoot": "/",
-    "target": "es2017",
+    "target": "esnext",
     "outDir": ".build",
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "lib": ["es2017"],
+    "lib": ["esnext"],
     "rootDir": "./src",
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "isolatedModules": true,
+    "noImplicitAny": true
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

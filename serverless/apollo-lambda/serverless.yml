@@ -3,7 +3,7 @@ app: black-history-api
 service: apollo-lambda
 variablesResolutionMode: 20210326
 
-frameworkVersion: '2'
+frameworkVersion: "2"
 
 provider:
   name: aws
@@ -11,6 +11,7 @@ provider:
   region: eu-west-2
   environment:
     DATABASE_URL: ${ssm:/black-history/keys/mongodb}
+    SENTRY_DSN: ${ssm:/black-history/keys/sentry}
   lambdaHashingVersion: 20201221
 
 plugins:
@@ -27,23 +28,23 @@ custom:
     printOutput: true
     prefix: graphql
   webpack:
-    webpackConfig: 'webpack.config.js' # Name of webpack configuration file
+    webpackConfig: "webpack.config.js" # Name of webpack configuration file
     includeModules: true # Node modules configuration for packaging
     packagerOptions:
       scripts: # this is the magic
         - npx prisma generate
-    packager: 'yarn' # Packager that will be used to package your external modules
+    packager: "yarn" # Packager that will be used to package your external modules
     excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
 
 functions:
   graphql:
     handler: src/handlers/graphql.handler
     events:
-    - http:
-        path: /
-        method: post
-        cors: true
-    - http:
-        path: /
-        method: get
-        cors: true
+      - http:
+          path: /
+          method: post
+          cors: true
+      - http:
+          path: /
+          method: get
+          cors: true

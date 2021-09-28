@@ -1,5 +1,8 @@
+import { Context } from "../context";
+
 const Query = {
-  people: (_, args, ctx) => ctx.prisma.person.findMany(),
+  people: (parent: any, args: any, context: Context) =>
+    context.prisma.person.findMany(),
 };
 
 export default Query;

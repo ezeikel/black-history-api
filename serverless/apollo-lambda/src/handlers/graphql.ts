@@ -1,7 +1,13 @@
 import { ApolloServer, gql } from "apollo-server-lambda";
+import * as Sentry from "@sentry/serverless";
 import Query from "../resolvers/Query";
 import Mutation from "../resolvers/Mutation";
 import { createContext } from "../context";
+
+Sentry.AWSLambda.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
 
 const typeDefs = gql`
   type Person {
@@ -30,4 +36,4 @@ const server = new ApolloServer({
   }),
 });
 
-export const handler = server.createHandler();
+export const handler = Sentry.AWSLambda.wrapHandler(server.createHandler());

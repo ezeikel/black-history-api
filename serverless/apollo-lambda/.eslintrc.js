@@ -22,12 +22,6 @@ module.exports = {
         ts: "never",
       },
     ],
-    "import/no-extraneous-dependencies": [
-      "error",
-      {
-        devDependencies: [".storybook/**", "stories/**"],
-      },
-    ],
     "no-console": [2, { allow: ["warn", "error"] }],
     "no-underscore-dangle": [2, { allow: ["_id"] }],
   },
@@ -44,6 +38,7 @@ module.exports = {
       parser: "@typescript-eslint/parser",
       parserOptions: {
         project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
       },
       plugins: ["@typescript-eslint/eslint-plugin"],
       extends: [
