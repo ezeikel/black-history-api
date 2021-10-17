@@ -9,8 +9,215 @@ generator client {
   binaryTargets   = ["native", "rhel-openssl-1.0.x"]
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NONBINARY
+  NOTSPECIFIED
+}
+
+enum OrganizationType {
+  EDUCATIONAL
+  COMMITTEE
+  NOTSPECIFIED
+}
+
+model User {
+  id               String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstName        String
+  lastName         String
+  email            String   @unique
+  role             Role     @default(USER)
+  profilePicture   Media?   @relation(fields: [profilePictureId], references: [id])
+  profilePictureId String?  @unique @db.ObjectId
+  bio              String?
+  gender           Gender   @default(value: NOTSPECIFIED)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("users")
+}
+
 model Person {
-  id        String @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  firstName String
-  lastName  String
+  id               String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstName        String? // TODO: one of these 3 fiekds should have a value
+  lastName         String?
+  alias            String?
+  gender           Gender         @default(value: NOTSPECIFIED)
+  bio              String?
+  born             DateTime?
+  placeOfBirth     Location?      @relation("PlaceOfBirth", fields: [placeOfBirthId], references: [id])
+  placeOfBirthId   String?        @unique @db.ObjectId
+  died             DateTime?
+  causeOfDeath     String?
+  restingPlace     Location?      @relation("RestingPlace", fields: [restingPlaceId], references: [id])
+  restingPlaceId   String?        @unique @db.ObjectId
+  education        Organization[]
+  occuptation      String?
+  knownFor         String?
+  awards           Award[]
+  memorials        Memorial[]     @relation(fields: [memorialIds])
+  memorialIds      String[]       @db.Array(ObjectId)
+  media            Media[]        @relation("PersonMedia", fields: [mediaIds])
+  mediaIds         String[]       @db.Array(ObjectId)
+  profilePicture   Media?         @relation("PersonProfilePicture", fields: [profilePictureId], references: [id])
+  profilePictureId String?        @unique @db.ObjectId
+  events           Event[]        @relation(fields: [eventIds])
+  eventIds         String[]       @db.Array(ObjectId)
+  facts            Fact[]         @relation(fields: [factIds])
+  factIds          String[]       @db.Array(ObjectId)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("people")
+}
+
+model Media {
+  id                   String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type                 MediaType @default(value: IMAGE)
+  caption              String?
+  url                  String
+  publicId             String
+  event                Event?    @relation(fields: [eventId], references: [id])
+  eventId              String    @db.ObjectId
+  fact                 Fact?     @relation(fields: [factId], references: [id])
+  factId               String    @db.ObjectId
+  location             Location  @relation(fields: [locationId], references: [id])
+  locationId           String    @db.ObjectId
+  personMedia          Person[]  @relation("PersonMedia", fields: [personIds])
+  personIds            String[]  @db.Array(ObjectId)
+  personProfilePicture Person?   @relation("PersonProfilePicture")
+  userProfilePicture   User?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("media")
+}
+
+model Fact {
+  id          String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  sources     String[]   @db.Array(String)
+  text        String
+  people      Person[]   @relation(fields: [personIds])
+  personIds   String[]   @db.Array(ObjectId)
+  location    Location[] @relation(fields: [locationIds])
+  locationIds String[]   @db.Array(ObjectId)
+  media       Media[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("facts")
+}
+
+model Event {
+  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name      String
+  date      DateTime
+  location  Location[]
+  people    Person[]   @relation(fields: [personIds])
+  personIds String[]   @db.Array(ObjectId)
+  media     Media[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("events")
+}
+
+model Organization {
+  id           String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name         String
+  type         OrganizationType @default(value: NOTSPECIFIED)
+  headQuarters Location         @relation(fields: [locationId], references: [id])
+  locationId   String           @db.ObjectId
+  website      String?
+  award        Award[]
+  Person       Person[]         @relation(fields: [personIds])
+  personIds    String[]         @db.Array(ObjectId)
+
+  @@map("organizations")
+}
+
+model Location {
+  id                 String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name               String
+  coordinates        Coordinates[]
+  address            Address        @relation(fields: [addressId], references: [id])
+  addressId          String         @unique @db.ObjectId
+  media              Media[]
+  event              Event?         @relation(fields: [eventId], references: [id])
+  eventId            String?        @db.ObjectId
+  organization       Organization[]
+  award              Award[]
+  memorial           Memorial[]
+  facts              Fact[]         @relation(fields: [factIds])
+  factIds            String[]       @db.Array(ObjectId)
+  personPlaceOfBirth Person?        @relation("PlaceOfBirth")
+  personRestingPlace Person?        @relation("RestingPlace")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@map("locations")
+}
+
+model Award {
+  id             String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name           String
+  awardedFor     String
+  location       Location?    @relation(fields: [locationId], references: [id])
+  locationId     String?      @db.ObjectId
+  presentedBy    Organization @relation(fields: [organizationId], references: [id])
+  organizationId String       @db.ObjectId
+  firstAwarded   DateTime
+  awardedTo      Person?      @relation(fields: [personId], references: [id])
+  personId       String?      @db.ObjectId
+
+  @@map("awards")
+}
+
+model Memorial {
+  id             String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  location       Location  @relation(fields: [locationId], references: [id])
+  locationId     String    @db.ObjectId
+  designer       String
+  material       String?
+  height         String?
+  completionDate DateTime?
+  openingDate    DateTime?
+  memorials      Person[]  @relation(fields: [dedicatedToIds])
+  dedicatedToIds String[]  @db.Array(ObjectId)
+  website        String?
+
+  @@map("memorials")
+}
+
+model Coordinates {
+  id         String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  latitude   Float
+  longitude  Float
+  Location   Location? @relation(fields: [locationId], references: [id])
+  locationId String?   @db.ObjectId
+
+  @@map("coordinates")
+}
+
+model Address {
+  id         String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstLine  String
+  secondLine String?
+  city       String
+  country    String
+  postalCode String
+  Location   Location?
+
+  @@map("addresses")
 }

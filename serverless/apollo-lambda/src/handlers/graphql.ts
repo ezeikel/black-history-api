@@ -11,14 +11,35 @@ Sentry.AWSLambda.init({
 
 const typeDefs = gql`
   type Person {
+    id: String!
+    firstName: String
+    lastName: String
+    alias: String
+  }
+  type User {
+    id: String!
     firstName: String!
     lastName: String!
+    email: String!
+    profilePicture: String
+    role: String!
+    bio: String
+    gender: String!
   }
   type Query {
     people: [Person]
+    users: [User]
   }
   type Mutation {
-    createPerson(firstName: String!, lastName: String!): Person!
+    createPerson(firstName: String, lastName: String, alias: String): Person!
+    createUser(
+      firstName: String!
+      lastName: String!
+      email: String!
+      profilePicture: String
+      bio: String
+      role: String
+    ): User!
   }
 `;
 
