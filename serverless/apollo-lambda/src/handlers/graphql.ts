@@ -10,6 +10,37 @@ Sentry.AWSLambda.init({
 });
 
 const typeDefs = gql`
+  input UserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    profilePicture: String
+    bio: String
+    role: String
+  }
+  input PersonInput {
+    firstName: String
+    lastName: String
+    alias: String
+  }
+  input LocationInput {
+    name: String!
+    coordinates: String!
+    address: String!
+  }
+  input MediaInput {
+    type: String!
+    caption: String
+    url: String!
+    publicId: String!
+  }
+  input FactInput {
+    text: String!
+    sources: [String]
+    people: [PersonInput]
+    location: LocationInput
+    media: [MediaInput]
+  }
   type Person {
     id: String!
     firstName: String
@@ -26,22 +57,49 @@ const typeDefs = gql`
     bio: String
     gender: String!
   }
-  type Query {
+  type Media {
+    id: String!
+    type: String!
+    caption: String
+    url: String!
+    publicId: String!
+    location: String!
+  }
+  type Address {
+    id: String!
+    firstLine: String!
+    secondLine: String
+    city: String!
+    country: String!
+    postalCode: String!
+  }
+  type Location {
+    id: String!
+    name: String!
+    # coordinates
+    address: Address!
+  }
+  type Fact {
+    id: String!
+    text: String!
+    sources: [String]
     people: [Person]
-    users: [User]
+    location: [Location]
+    media: [Media]
+  }
+  type Query {
+    people: [Person!]!
+    users: [User!]!
+    facts: [Fact!]!
   }
   type Mutation {
-    createPerson(firstName: String, lastName: String, alias: String): Person!
-    createUser(
-      firstName: String!
-      lastName: String!
-      email: String!
-      profilePicture: String
-      bio: String
-      role: String
-    ): User!
+    createPerson(person: PersonInput): Person!
+    createUser(user: UserInput): User!
+    createFact(fact: FactInput): Fact!
   }
 `;
+
+// TODO: look at old cuurly project and copy how inputTypes are defined and used
 
 const resolvers = {
   Query,

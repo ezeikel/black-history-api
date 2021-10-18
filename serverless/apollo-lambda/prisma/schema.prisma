@@ -50,7 +50,7 @@ model User {
 
 model Person {
   id               String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  firstName        String? // TODO: one of these 3 fiekds should have a value
+  firstName        String? // TODO: one of these 3 fields should have a value
   lastName         String?
   alias            String?
   gender           Gender         @default(value: NOTSPECIFIED)
@@ -106,8 +106,8 @@ model Media {
 
 model Fact {
   id          String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  sources     String[]   @db.Array(String)
   text        String
+  sources     String[]   @db.Array(String)
   people      Person[]   @relation(fields: [personIds])
   personIds   String[]   @db.Array(ObjectId)
   location    Location[] @relation(fields: [locationIds])
