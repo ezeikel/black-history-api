@@ -5,6 +5,25 @@ enum Role {
   ADMIN = "ADMIN",
 }
 
+enum OrganizationType {
+  EDUCATIONAL = "EDUCATIONAL",
+  COMMITTEE = "COMMITTEE",
+  NOTSPECIFIED = "NOTSPECIFIED",
+}
+
+type Location = {
+  address: Address;
+  coordinates: number[];
+};
+
+type Address = {
+  firstLine: string;
+  secondLine?: string;
+  city: string;
+  country: string;
+  postalCode: string;
+};
+
 type CreatePersonArgs = {
   person: {
     firstName: string;
@@ -49,6 +68,21 @@ type CreateFactArgs = {
   };
 };
 
+type CreateEventArgs = {
+  event: {
+    name: string;
+    date: string;
+  };
+};
+
+type CreateOrganizationArgs = {
+  organization: {
+    name: string;
+    type?: OrganizationType;
+    headQuarters: Location;
+  };
+};
+
 const Mutations = {
   createPerson: async (
     parent: any,
@@ -80,6 +114,36 @@ const Mutations = {
         // people: { create: people },
         // location: { create: location },
         // media: { create: media },
+      },
+    });
+  },
+  createEvent: async (
+    parent: any,
+    { event: { name, date } }: CreateEventArgs,
+    context: Context,
+  ) => {
+    return context.prisma.event.create({
+      data: {
+        name,
+        date,
+      },
+    });
+  },
+  createOrganization: async (
+    parent: any,
+    { organization: { name, type, headQuarters } }: CreateOrganizationArgs,
+    context: Context,
+  ) => {
+    return context.prisma.organization.create({
+      data: {
+        name,
+        type,
+        headQuarters: {
+          create: {
+            ...headQuarters,
+            address: { create: headQuarters.address },
+          },
+        },
       },
     });
   },

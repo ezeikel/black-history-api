@@ -134,23 +134,22 @@ model Event {
 }
 
 model Organization {
-  id           String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  name         String
-  type         OrganizationType @default(value: NOTSPECIFIED)
-  headQuarters Location         @relation(fields: [locationId], references: [id])
-  locationId   String           @db.ObjectId
-  website      String?
-  award        Award[]
-  Person       Person[]         @relation(fields: [personIds])
-  personIds    String[]         @db.Array(ObjectId)
+  id             String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name           String
+  type           OrganizationType @default(value: NOTSPECIFIED)
+  headQuarters   Location         @relation(fields: [headQuartersId], references: [id])
+  headQuartersId String           @db.ObjectId
+  website        String?
+  award          Award[]
+  Person         Person[]         @relation(fields: [personIds])
+  personIds      String[]         @db.Array(ObjectId)
 
   @@map("organizations")
 }
 
 model Location {
   id                 String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  name               String
-  coordinates        Coordinates[]
+  coordinates        Float[]        @db.Array(Double)
   address            Address        @relation(fields: [addressId], references: [id])
   addressId          String         @unique @db.ObjectId
   media              Media[]
@@ -198,16 +197,6 @@ model Memorial {
   website        String?
 
   @@map("memorials")
-}
-
-model Coordinates {
-  id         String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  latitude   Float
-  longitude  Float
-  Location   Location? @relation(fields: [locationId], references: [id])
-  locationId String?   @db.ObjectId
-
-  @@map("coordinates")
 }
 
 model Address {

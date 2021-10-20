@@ -1,4 +1,5 @@
 import { ApolloServer, gql } from "apollo-server-lambda";
+import { GraphQLScalarType, Kind } from "graphql";
 import * as Sentry from "@sentry/serverless";
 import Query from "../resolvers/Query";
 import Mutation from "../resolvers/Mutation";
@@ -10,6 +11,8 @@ Sentry.AWSLambda.init({
 });
 
 const typeDefs = gql`
+  scalar Date
+
   input UserInput {
     firstName: String!
     lastName: String!
@@ -18,22 +21,25 @@ const typeDefs = gql`
     bio: String
     role: String
   }
+
   input PersonInput {
     firstName: String
     lastName: String
     alias: String
   }
+
   input LocationInput {
-    name: String!
-    coordinates: String!
-    address: String!
+    coordinates: [Float]
+    address: AddressInput!
   }
+
   input MediaInput {
     type: String!
     caption: String
     url: String!
     publicId: String!
   }
+
   input FactInput {
     text: String!
     sources: [String]
@@ -41,12 +47,34 @@ const typeDefs = gql`
     location: LocationInput
     media: [MediaInput]
   }
+
+  input EventInput {
+    name: String!
+    date: Date!
+  }
+
+  input OrganizationInput {
+    name: String!
+    headQuarters: LocationInput!
+  }
+
+  input AddressInput {
+    firstLine: String!
+    secondLine: String
+    city: String!
+    country: String!
+    postalCode: String!
+  }
+
   type Person {
     id: String!
     firstName: String
     lastName: String
     alias: String
+    createdAt: Date!
+    updatedAt: Date!
   }
+
   type User {
     id: String!
     firstName: String!
@@ -56,7 +84,10 @@ const typeDefs = gql`
     role: String!
     bio: String
     gender: String!
+    createdAt: Date!
+    updatedAt: Date!
   }
+
   type Media {
     id: String!
     type: String!
@@ -64,7 +95,10 @@ const typeDefs = gql`
     url: String!
     publicId: String!
     location: String!
+    createdAt: Date!
+    updatedAt: Date!
   }
+
   type Address {
     id: String!
     firstLine: String!
@@ -72,13 +106,19 @@ const typeDefs = gql`
     city: String!
     country: String!
     postalCode: String!
+    createdAt: Date!
+    updatedAt: Date!
   }
+
   type Location {
     id: String!
     name: String!
-    # coordinates
+    coordinates: [Float!]!
     address: Address!
+    createdAt: Date!
+    updatedAt: Date!
   }
+
   type Fact {
     id: String!
     text: String!
@@ -86,22 +126,62 @@ const typeDefs = gql`
     people: [Person]
     location: [Location]
     media: [Media]
+    createdAt: Date!
+    updatedAt: Date!
   }
+
+  type Event {
+    id: String!
+    name: String!
+    date: Date!
+    createdAt: Date!
+    updatedAt: Date!
+  }
+
+  type Organization {
+    id: String!
+    name: String!
+    type: String!
+    headQuarters: Location!
+    website: String
+    createdAt: Date!
+    updatedAt: Date!
+  }
+
   type Query {
     people: [Person!]!
     users: [User!]!
     facts: [Fact!]!
+    events: [Event!]!
+    organizations: [Organization!]!
   }
+
   type Mutation {
     createPerson(person: PersonInput): Person!
     createUser(user: UserInput): User!
     createFact(fact: FactInput): Fact!
+    createEvent(event: EventInput): Event!
+    createOrganization(organization: OrganizationInput): Organization!
   }
 `;
 
-// TODO: look at old cuurly project and copy how inputTypes are defined and used
-
 const resolvers = {
+  Date: new GraphQLScalarType({
+    name: "Date",
+    description: "Date custom scalar type",
+    serialize(value) {
+      return value.getTime(); // value sent to client
+    },
+    parseValue(value) {
+      return new Date(value); // value from the client
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.INT) {
+        return new Date(ast.value); // ast value is always in string format
+      }
+      return null;
+    },
+  }),
   Query,
   Mutation,
 };
