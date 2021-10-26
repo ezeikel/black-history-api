@@ -40,10 +40,14 @@ const typeDefs = gql`
     publicId: String!
   }
 
+  input FactPeopleInput {
+    id: String!
+  }
+
   input FactInput {
     text: String!
     sources: [String]
-    people: [PersonInput]
+    people: [FactPeopleInput]
     location: LocationInput
     media: [MediaInput]
   }

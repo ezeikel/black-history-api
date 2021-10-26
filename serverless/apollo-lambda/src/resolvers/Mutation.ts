@@ -46,25 +46,9 @@ type CreateFactArgs = {
   fact: {
     text: string;
     sources: string[];
-    // people?: { firstName: string; lastName: string; alias: string }[];
-    // location?: { name: string; address: string }[];
-    // media?: {
-    //   type: string;
-    //   caption: string;
-    //   url: string;
-    //   publicId: string;
-    //   location: {
-    //     name: string;
-    //     address: {
-    //       firstLine: string;
-    //       secondLine: string;
-    //       city: string;
-    //       country: string;
-    //       postalCode: string;
-    //     };
-    //     coordinates: { latitude: string; longitute: string }[];
-    //   };
-    // }[];
+    people?: { id: string }[];
+    location?: { id: string }[];
+    media?: { id: string }[];
   };
 };
 
@@ -89,8 +73,24 @@ const Mutations = {
     { person: { firstName, lastName, alias } }: CreatePersonArgs,
     context: Context,
   ) => {
+    const contributionType = "PERSON";
+
     return context.prisma.person.create({
-      data: { firstName, lastName, alias },
+      data: {
+        firstName,
+        lastName,
+        alias,
+        contribution: {
+          create: {
+            type: contributionType,
+            user: {
+              connect: {
+                id: "616b996e006e15f300b9b4c7",
+              },
+            },
+          },
+        },
+      },
     });
   },
   createUser: async (
@@ -104,16 +104,33 @@ const Mutations = {
   },
   createFact: async (
     parent: any,
-    { fact: { text, sources } }: CreateFactArgs,
+    { fact: { text, sources, people, location, media } }: CreateFactArgs,
     context: Context,
   ) => {
+    const contributionType = "FACT";
+
     return context.prisma.fact.create({
       data: {
         text,
         sources,
-        // people: { create: people },
-        // location: { create: location },
-        // media: { create: media },
+        people: {
+          connect:
+            people?.map(person => ({
+              id: person.id,
+            })) || [],
+        },
+        location: { connect: location },
+        media: { connect: media },
+        contribution: {
+          create: {
+            type: contributionType,
+            user: {
+              connect: {
+                id: "616b996e006e15f300b9b4c7",
+              },
+            },
+          },
+        },
       },
     });
   },
@@ -122,10 +139,22 @@ const Mutations = {
     { event: { name, date } }: CreateEventArgs,
     context: Context,
   ) => {
+    const contributionType = "MEDIA";
+
     return context.prisma.event.create({
       data: {
         name,
         date,
+        contribution: {
+          create: {
+            type: contributionType,
+            user: {
+              connect: {
+                id: "616b996e006e15f300b9b4c7",
+              },
+            },
+          },
+        },
       },
     });
   },

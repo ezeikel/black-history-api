@@ -6,7 +6,11 @@ const Query = {
   users: (parent: any, args: any, context: Context) =>
     context.prisma.user.findMany(),
   facts: (parent: any, args: any, context: Context) =>
-    context.prisma.fact.findMany(),
+    context.prisma.fact.findMany({
+      include: {
+        people: true,
+      },
+    }),
   events: (parent: any, args: any, context: Context) =>
     context.prisma.event.findMany(),
   organizations: (parent: any, args: any, context: Context) =>
