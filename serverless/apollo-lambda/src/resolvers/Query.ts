@@ -15,6 +15,12 @@ const Query = {
         headQuarters: true,
       },
     }),
+  contributions: (parent: any, args: any, context: Context) =>
+    context.prisma.contribution.findMany({
+      include: {
+        user: true,
+      },
+    }),
 };
 
 export default Query;

@@ -148,12 +148,20 @@ const typeDefs = gql`
     updatedAt: Date!
   }
 
+  type Contribution {
+    id: String!
+    type: String!
+    approved: Boolean!
+    user: User!
+  }
+
   type Query {
     people: [Person!]!
     users: [User!]!
     facts: [Fact!]!
     events: [Event!]!
     organizations: [Organization!]!
+    contributions: [Contribution!]!
   }
 
   type Mutation {

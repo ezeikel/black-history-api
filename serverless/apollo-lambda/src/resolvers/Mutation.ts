@@ -134,12 +134,24 @@ const Mutations = {
     { organization: { name, type, headQuarters } }: CreateOrganizationArgs,
     context: Context,
   ) => {
+    const contributionType = "ORGANIZATION";
+
     return context.prisma.organization.create({
       data: {
         name,
         type,
         headQuarters: {
           create: headQuarters,
+        },
+        contribution: {
+          create: {
+            type: contributionType,
+            user: {
+              connect: {
+                id: "616b996e006e15f300b9b4c7",
+              },
+            },
+          },
         },
       },
     });

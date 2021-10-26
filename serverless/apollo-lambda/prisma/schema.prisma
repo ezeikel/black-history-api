@@ -32,18 +32,29 @@ enum OrganizationType {
   NOTSPECIFIED
 }
 
+enum ContributionType {
+  PERSON
+  MEDIA
+  FACT
+  EVENT
+  ORGANIZATION
+  MEMORIAL
+}
+
 model User {
-  id               String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id               String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
   firstName        String
   lastName         String
-  email            String   @unique
-  role             Role     @default(USER)
-  profilePicture   Media?   @relation(fields: [profilePictureId], references: [id])
-  profilePictureId String?  @unique @db.ObjectId
+  email            String         @unique
+  role             Role           @default(USER)
+  profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
+  profilePictureId String?        @unique @db.ObjectId
   bio              String?
-  gender           Gender   @default(value: NOTSPECIFIED)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  gender           Gender         @default(value: NOTSPECIFIED)
+  Contribution     Contribution[]
+  Edit             Edit[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@map("users")
 }
@@ -76,6 +87,8 @@ model Person {
   eventIds         String[]       @db.Array(ObjectId)
   facts            Fact[]         @relation(fields: [factIds])
   factIds          String[]       @db.Array(ObjectId)
+  contribution     Contribution?  @relation(fields: [contributionId], references: [id])
+  contributionId   String         @db.ObjectId
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -83,52 +96,58 @@ model Person {
 }
 
 model Media {
-  id                   String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  type                 MediaType @default(value: IMAGE)
+  id                   String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type                 MediaType     @default(value: IMAGE)
   caption              String?
   url                  String
   publicId             String
-  event                Event?    @relation(fields: [eventId], references: [id])
-  eventId              String    @db.ObjectId
-  fact                 Fact?     @relation(fields: [factId], references: [id])
-  factId               String    @db.ObjectId
-  location             Location  @relation(fields: [locationId], references: [id])
-  locationId           String    @db.ObjectId
-  personMedia          Person[]  @relation("PersonMedia", fields: [personIds])
-  personIds            String[]  @db.Array(ObjectId)
-  personProfilePicture Person?   @relation("PersonProfilePicture")
+  event                Event?        @relation(fields: [eventId], references: [id])
+  eventId              String        @db.ObjectId
+  fact                 Fact?         @relation(fields: [factId], references: [id])
+  factId               String        @db.ObjectId
+  location             Location      @relation(fields: [locationId], references: [id])
+  locationId           String        @db.ObjectId
+  personMedia          Person[]      @relation("PersonMedia", fields: [personIds])
+  personIds            String[]      @db.Array(ObjectId)
+  personProfilePicture Person?       @relation("PersonProfilePicture")
   userProfilePicture   User?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  contribution         Contribution? @relation(fields: [contributionId], references: [id])
+  contributionId       String        @db.ObjectId
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   @@map("media")
 }
 
 model Fact {
-  id          String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  text        String
-  sources     String[]   @db.Array(String)
-  people      Person[]   @relation(fields: [personIds])
-  personIds   String[]   @db.Array(ObjectId)
-  location    Location[] @relation(fields: [locationIds])
-  locationIds String[]   @db.Array(ObjectId)
-  media       Media[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id             String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  text           String
+  sources        String[]      @db.Array(String)
+  people         Person[]      @relation(fields: [personIds])
+  personIds      String[]      @db.Array(ObjectId)
+  location       Location[]    @relation(fields: [locationIds])
+  locationIds    String[]      @db.Array(ObjectId)
+  media          Media[]
+  contribution   Contribution? @relation(fields: [contributionId], references: [id])
+  contributionId String        @db.ObjectId
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("facts")
 }
 
 model Event {
-  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  name      String
-  date      DateTime
-  location  Location[]
-  people    Person[]   @relation(fields: [personIds])
-  personIds String[]   @db.Array(ObjectId)
-  media     Media[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id             String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  name           String
+  date           DateTime
+  location       Location[]
+  people         Person[]      @relation(fields: [personIds])
+  personIds      String[]      @db.Array(ObjectId)
+  media          Media[]
+  contribution   Contribution? @relation(fields: [contributionId], references: [id])
+  contributionId String        @db.ObjectId
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("events")
 }
@@ -143,6 +162,10 @@ model Organization {
   award          Award[]
   Person         Person[]         @relation(fields: [personIds])
   personIds      String[]         @db.Array(ObjectId)
+  contribution   Contribution?    @relation(fields: [contributionId], references: [id])
+  contributionId String           @db.ObjectId
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@map("organizations")
 }
@@ -178,22 +201,57 @@ model Award {
   firstAwarded   DateTime
   awardedTo      Person?      @relation(fields: [personId], references: [id])
   personId       String?      @db.ObjectId
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@map("awards")
 }
 
 model Memorial {
-  id             String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  location       Location  @relation(fields: [locationId], references: [id])
-  locationId     String    @db.ObjectId
+  id             String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  location       Location      @relation(fields: [locationId], references: [id])
+  locationId     String        @db.ObjectId
   designer       String
   material       String?
   height         String?
   completionDate DateTime?
   openingDate    DateTime?
-  memorials      Person[]  @relation(fields: [dedicatedToIds])
-  dedicatedToIds String[]  @db.Array(ObjectId)
+  memorials      Person[]      @relation(fields: [dedicatedToIds])
+  dedicatedToIds String[]      @db.Array(ObjectId)
   website        String?
+  contribution   Contribution? @relation(fields: [contributionId], references: [id])
+  contributionId String        @db.ObjectId
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("memorials")
+}
+
+model Contribution {
+  id           String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type         ContributionType
+  approved     Boolean          @default(false)
+  user         User?            @relation(fields: [userId], references: [id])
+  userId       String           @db.ObjectId
+  Person       Person[]
+  Media        Media[]
+  Memorial     Memorial[]
+  Organization Organization[]
+  Event        Event[]
+  Fact         Fact[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@map("contributions")
+}
+
+model Edit {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  approved  Boolean  @default(false)
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("edits")
 }
