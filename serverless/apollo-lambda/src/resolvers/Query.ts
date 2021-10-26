@@ -12,11 +12,7 @@ const Query = {
   organizations: (parent: any, args: any, context: Context) =>
     context.prisma.organization.findMany({
       include: {
-        headQuarters: {
-          include: {
-            address: true,
-          },
-        },
+        headQuarters: true,
       },
     }),
 };

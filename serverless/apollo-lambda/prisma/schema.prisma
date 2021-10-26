@@ -149,9 +149,8 @@ model Organization {
 
 model Location {
   id                 String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  coordinates        Float[]        @db.Array(Double)
-  address            Address        @relation(fields: [addressId], references: [id])
-  addressId          String         @unique @db.ObjectId
+  coordinates        Float[]        @db.Array(Double) // TODO: should be of type Point when support lands in Prisma - https://docs.mongodb.com/manual/reference/geojson/
+  address            Json? // TODO: should be an embedded type when support lands - https://www.notion.so/Prisma-Roadmap-50766227b779464ab98899accb98295f?p=59064796f8dc4beab2c3b69df56d2244 https://github.com/prisma/prisma/issues/1798#issuecomment-951256487
   media              Media[]
   event              Event?         @relation(fields: [eventId], references: [id])
   eventId            String?        @db.ObjectId
@@ -197,16 +196,4 @@ model Memorial {
   website        String?
 
   @@map("memorials")
-}
-
-model Address {
-  id         String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  firstLine  String
-  secondLine String?
-  city       String
-  country    String
-  postalCode String
-  Location   Location?
-
-  @@map("addresses")
 }

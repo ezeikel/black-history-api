@@ -12,7 +12,7 @@ enum OrganizationType {
 }
 
 type Location = {
-  address: Address;
+  address?: Address;
   coordinates: number[];
 };
 
@@ -139,10 +139,7 @@ const Mutations = {
         name,
         type,
         headQuarters: {
-          create: {
-            ...headQuarters,
-            address: { create: headQuarters.address },
-          },
+          create: headQuarters,
         },
       },
     });

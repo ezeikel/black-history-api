@@ -29,8 +29,8 @@ const typeDefs = gql`
   }
 
   input LocationInput {
-    coordinates: [Float]
-    address: AddressInput!
+    coordinates: [Float!]!
+    address: AddressInput
   }
 
   input MediaInput {
@@ -114,7 +114,7 @@ const typeDefs = gql`
     id: String!
     name: String!
     coordinates: [Float!]!
-    address: Address!
+    address: Address
     createdAt: Date!
     updatedAt: Date!
   }
