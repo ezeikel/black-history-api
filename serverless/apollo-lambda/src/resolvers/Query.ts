@@ -25,6 +25,13 @@ const Query = {
         user: true,
       },
     }),
+  media: (parent: any, args: any, context: Context) =>
+    context.prisma.media.findMany({
+      include: {
+        location: true,
+        // TODO: more related fields?
+      },
+    }),
 };
 
 export default Query;

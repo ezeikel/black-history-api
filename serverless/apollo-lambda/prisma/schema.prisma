@@ -105,7 +105,7 @@ model Media {
   eventId              String        @db.ObjectId
   fact                 Fact?         @relation(fields: [factId], references: [id])
   factId               String        @db.ObjectId
-  location             Location      @relation(fields: [locationId], references: [id])
+  location             Location?     @relation(fields: [locationId], references: [id])
   locationId           String        @db.ObjectId
   personMedia          Person[]      @relation("PersonMedia", fields: [personIds])
   personIds            String[]      @db.Array(ObjectId)
@@ -125,7 +125,7 @@ model Fact {
   sources        String[]      @db.Array(String)
   people         Person[]      @relation(fields: [personIds])
   personIds      String[]      @db.Array(ObjectId)
-  location       Location[]    @relation(fields: [locationIds])
+  locations      Location[]    @relation(fields: [locationIds])
   locationIds    String[]      @db.Array(ObjectId)
   media          Media[]
   contribution   Contribution? @relation(fields: [contributionId], references: [id])
@@ -140,7 +140,7 @@ model Event {
   id             String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
   name           String
   date           DateTime
-  location       Location[]
+  locations      Location[]
   people         Person[]      @relation(fields: [personIds])
   personIds      String[]      @db.Array(ObjectId)
   media          Media[]

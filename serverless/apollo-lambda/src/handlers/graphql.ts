@@ -1,5 +1,6 @@
 import { ApolloServer, gql } from "apollo-server-lambda";
 import { GraphQLScalarType, Kind } from "graphql";
+import { GraphQLUpload } from "graphql-upload";
 import * as Sentry from "@sentry/serverless";
 import Query from "../resolvers/Query";
 import Mutation from "../resolvers/Mutation";
@@ -12,6 +13,7 @@ Sentry.AWSLambda.init({
 
 const typeDefs = gql`
   scalar Date
+  scalar Upload
 
   input UserInput {
     firstName: String!
@@ -36,8 +38,7 @@ const typeDefs = gql`
   input MediaInput {
     type: String!
     caption: String
-    url: String!
-    publicId: String!
+    file: Upload!
   }
 
   input FactPeopleInput {
@@ -166,6 +167,7 @@ const typeDefs = gql`
     events: [Event!]!
     organizations: [Organization!]!
     contributions: [Contribution!]!
+    media: [Media!]!
   }
 
   type Mutation {
@@ -174,6 +176,7 @@ const typeDefs = gql`
     createFact(fact: FactInput): Fact!
     createEvent(event: EventInput): Event!
     createOrganization(organization: OrganizationInput): Organization!
+    createMedia(media: MediaInput): Media!
   }
 `;
 
@@ -194,6 +197,7 @@ const resolvers = {
       return null;
     },
   }),
+  Upload: GraphQLUpload,
   Query,
   Mutation,
 };
