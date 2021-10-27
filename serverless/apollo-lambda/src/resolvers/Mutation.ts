@@ -125,6 +125,7 @@ const Mutations = {
 
     // FYI: using connect for related array fields because connectOrCreate doesnt support multiple connects/creations - https://github.com/prisma/prisma/issues/5100
     // this means any array of related Models will have to be created beforehand by front end and their ids passed to this resolver
+    // TODO: solution for above here - https://github.com/prisma/prisma/discussions/8851
 
     return context.prisma.fact.create({
       data: {
