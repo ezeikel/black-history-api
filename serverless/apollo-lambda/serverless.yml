@@ -12,6 +12,11 @@ provider:
   environment:
     DATABASE_URL: ${ssm:/black-history/keys/mongodb}
     SENTRY_DSN: ${ssm:/black-history/keys/sentry}
+    CLOUDINARY_KEY: ${ssm:/black-history/keys/cloudinary/key}
+    CLOUDINARY_SECRET: ${ssm:/black-history/keys/cloudinary/secret}
+  apiGateway:
+    binaryMediaTypes:
+      - "*/*"
   lambdaHashingVersion: 20201221
 
 plugins:

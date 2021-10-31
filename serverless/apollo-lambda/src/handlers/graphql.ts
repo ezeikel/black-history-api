@@ -1,6 +1,7 @@
 import { ApolloServer, gql } from "apollo-server-lambda";
+import express from "express";
 import { GraphQLScalarType, Kind } from "graphql";
-import { GraphQLUpload } from "graphql-upload";
+import { GraphQLUpload, graphqlUploadExpress } from "graphql-upload";
 import * as Sentry from "@sentry/serverless";
 import Query from "../resolvers/Query";
 import Mutation from "../resolvers/Mutation";
@@ -211,4 +212,13 @@ const server = new ApolloServer({
   }),
 });
 
-export const handler = Sentry.AWSLambda.wrapHandler(server.createHandler());
+export const handler = Sentry.AWSLambda.wrapHandler(
+  server.createHandler({
+    expressAppFromMiddleware(middleware) {
+      const app = express();
+      app.use(graphqlUploadExpress());
+      app.use(middleware);
+      return app;
+    },
+  }),
+);

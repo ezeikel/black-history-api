@@ -236,7 +236,7 @@ const Mutations = {
   },
   createMedia: async (
     parent: any,
-    { media: { type, caption, location, file } }: CreateMediaArgs,
+    { media: { type, caption, file } }: CreateMediaArgs,
     context: Context,
   ) => {
     let fileType;
@@ -273,11 +273,11 @@ const Mutations = {
         caption,
         publicId,
         url: resultSecureUrl,
-        location: {
-          connect: {
-            id: location,
-          },
-        },
+        // location: {
+        //   connect: {
+        //     id: location,
+        //   },
+        // },
         contribution: {
           create: {
             type: contributionType,

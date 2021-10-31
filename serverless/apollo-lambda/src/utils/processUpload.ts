@@ -1,10 +1,9 @@
 import cloudinary from "cloudinary";
 
-// TODO: remove hardcoded values and read from .env instead
 cloudinary.v2.config({
   cloud_name: "black-history",
-  api_key: "587685821236624",
-  api_secret: "xHtsSFHgmkRH1-4jT4Mjt1uosfg",
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
 });
 
 const processUpload = async ({
@@ -55,7 +54,6 @@ const processUpload = async ({
           uploadConfig,
           (error, result) => {
             if (result) {
-              // console.log({ result });
               resultUrl = result.url;
               resultSecureUrl = result.secure_url;
               publicId = result.public_id;
