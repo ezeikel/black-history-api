@@ -17,6 +17,10 @@ const typeDefs = gql`
   scalar Date
   scalar Upload
 
+  type SuccessMessage {
+    message: String
+  }
+
   input UserInput {
     firstName: String!
     lastName: String!
@@ -176,6 +180,8 @@ const typeDefs = gql`
   type Mutation {
     createPerson(person: PersonInput): Person!
     createUser(user: UserInput): User!
+    signInUser(email: String!, password: String!): User!
+    signOutUser: SuccessMessage!
     createFact(fact: FactInput): Fact!
     createEvent(event: EventInput): Event!
     createOrganization(organization: OrganizationInput): Organization!

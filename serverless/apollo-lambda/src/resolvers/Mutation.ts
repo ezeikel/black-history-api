@@ -79,6 +79,11 @@ type CreateMediaArgs = {
   };
 };
 
+type SignInUserArgs = {
+  email: string;
+  password: string;
+};
+
 const Mutations = {
   createPerson: async (
     parent: any,
@@ -156,6 +161,52 @@ const Mutations = {
 
     // finally return user
     return user;
+  },
+  signInUser: async (
+    parent: any,
+    { email, password }: SignInUserArgs,
+    context: Context,
+  ) => {
+    // check if a user with email exists
+    const user = await context.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new Error(
+        "Hmm, we couldn't find that email in our records. Try again.",
+      );
+    }
+
+    // check if the password is correct
+    const valid = await bcrypt.compare(password, user.password);
+
+    if (!valid) {
+      throw new Error(
+        "Hmm, that password doesn't match the one we have on record. Try again.",
+      );
+    }
+
+    // generate the jwt
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.APP_SECRET as string,
+    );
+
+    // set cookie with the token
+    context.res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 365,
+    });
+
+    return user;
+  },
+  signOutUser: (parent: any, args: {}, context: Context) => {
+    context.res.clearCookie("token");
+
+    return { message: "Goodbye!" };
   },
   createFact: async (
     parent: any,
