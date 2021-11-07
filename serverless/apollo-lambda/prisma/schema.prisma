@@ -46,13 +46,16 @@ model User {
   firstName        String
   lastName         String
   email            String         @unique
+  username         String         @unique
+  password         String
   role             Role           @default(USER)
   profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
   profilePictureId String?        @unique @db.ObjectId
   bio              String?
   gender           Gender         @default(value: NOTSPECIFIED)
-  Contribution     Contribution[]
-  Edit             Edit[]
+  contributions    Contribution[]
+  edits            Edit[]
+  quotes           Quote[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -227,20 +230,31 @@ model Memorial {
   @@map("memorials")
 }
 
+model Quote {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  text      String
+  quotee    User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("quotes")
+}
+
 model Contribution {
-  id           String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  type         ContributionType
-  approved     Boolean          @default(false)
-  user         User?            @relation(fields: [userId], references: [id])
-  userId       String           @db.ObjectId
-  Person       Person[]
-  Media        Media[]
-  Memorial     Memorial[]
-  Organization Organization[]
-  Event        Event[]
-  Fact         Fact[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id            String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type          ContributionType
+  approved      Boolean          @default(false)
+  user          User             @relation(fields: [userId], references: [id])
+  userId        String           @db.ObjectId
+  people        Person[]
+  media         Media[]
+  memorials     Memorial[]
+  organizations Organization[]
+  events        Event[]
+  facts         Fact[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@map("contributions")
 }
@@ -248,7 +262,7 @@ model Contribution {
 model Edit {
   id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
   approved  Boolean  @default(false)
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

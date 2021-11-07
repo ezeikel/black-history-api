@@ -1,10 +1,7 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { Context } from "../context";
 import processUpload from "../utils/processUpload";
-
-enum Role {
-  USER = "USER",
-  ADMIN = "ADMIN",
-}
 
 enum OrganizationType {
   EDUCATIONAL = "EDUCATIONAL",
@@ -37,8 +34,9 @@ type CreateUserArgs = {
   user: {
     firstName: string;
     lastName: string;
+    username: string;
     email: string;
-    role?: Role;
+    password: string;
     bio?: string;
   };
 };
@@ -87,6 +85,9 @@ const Mutations = {
     { person: { firstName, lastName, alias } }: CreatePersonArgs,
     context: Context,
   ) => {
+    const {
+      user: { id: userId },
+    } = context;
     const contributionType = "PERSON";
 
     return context.prisma.person.create({
@@ -99,7 +100,7 @@ const Mutations = {
             type: contributionType,
             user: {
               connect: {
-                id: "616b996e006e15f300b9b4c7",
+                id: userId,
               },
             },
           },
@@ -109,18 +110,61 @@ const Mutations = {
   },
   createUser: async (
     parent: any,
-    { user: { firstName, lastName, email, bio, role } }: CreateUserArgs,
+    {
+      user: { firstName, lastName, email, bio, username, password },
+    }: CreateUserArgs,
     context: Context,
   ) => {
-    return context.prisma.user.create({
-      data: { firstName, lastName, email, bio, role },
+    const lowerCaseEmail = email.toLowerCase();
+    const lowerCaseUsername = username.toLowerCase();
+
+    // TODO: Do some kind of check for taken username aswell
+    const exists = await context.prisma.user.findUnique({ where: { email } });
+
+    if (exists) {
+      throw new Error(
+        "email: Hmm, a user with that email already exists. Use another one or sign in.",
+      );
+    }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // create user in the db
+    const user = await context.prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email: lowerCaseEmail,
+        bio,
+        username: lowerCaseUsername,
+        password: hashedPassword,
+      },
     });
+
+    // create jwt token for user
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.APP_SECRET as string,
+    );
+
+    // set the jwt as a cookie on the response
+    context.res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year cookie
+    });
+
+    // finally return user
+    return user;
   },
   createFact: async (
     parent: any,
     { fact: { text, sources, people, locations, media } }: CreateFactArgs,
     context: Context,
   ) => {
+    const {
+      user: { id: userId },
+    } = context;
     const contributionType = "FACT";
 
     // FYI: using connect for related array fields because connectOrCreate doesnt support multiple connects/creations - https://github.com/prisma/prisma/issues/5100
@@ -154,7 +198,7 @@ const Mutations = {
             type: contributionType,
             user: {
               connect: {
-                id: "616b996e006e15f300b9b4c7", // TODO: replace with req.user
+                id: userId,
               },
             },
           },
@@ -167,6 +211,9 @@ const Mutations = {
     { event: { name, date, people, locations, media } }: CreateEventArgs,
     context: Context,
   ) => {
+    const {
+      user: { id: userId },
+    } = context;
     const contributionType = "EVENT";
 
     return context.prisma.event.create({
@@ -196,7 +243,7 @@ const Mutations = {
             type: contributionType,
             user: {
               connect: {
-                id: "616b996e006e15f300b9b4c7", // TODO: replace with req.user
+                id: userId,
               },
             },
           },
@@ -211,6 +258,9 @@ const Mutations = {
     }: CreateOrganizationArgs,
     context: Context,
   ) => {
+    const {
+      user: { id: userId },
+    } = context;
     const contributionType = "ORGANIZATION";
 
     return context.prisma.organization.create({
@@ -226,7 +276,7 @@ const Mutations = {
             type: contributionType,
             user: {
               connect: {
-                id: "616b996e006e15f300b9b4c7", // TODO: replace with req.user
+                id: userId,
               },
             },
           },
@@ -239,6 +289,9 @@ const Mutations = {
     { media: { type, caption, file } }: CreateMediaArgs,
     context: Context,
   ) => {
+    const {
+      user: { id: userId },
+    } = context;
     let fileType;
     const contributionType = "MEDIA";
     const { createReadStream, mimetype } = await file;
@@ -283,7 +336,7 @@ const Mutations = {
             type: contributionType,
             user: {
               connect: {
-                id: "616b996e006e15f300b9b4c7", // TODO: replace with req.user
+                id: userId,
               },
             },
           },
