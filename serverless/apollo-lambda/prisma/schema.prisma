@@ -46,6 +46,8 @@ model User {
   firstName        String
   lastName         String
   email            String         @unique
+  username         String         @unique
+  password         String
   role             Role           @default(USER)
   profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
   profilePictureId String?        @unique @db.ObjectId

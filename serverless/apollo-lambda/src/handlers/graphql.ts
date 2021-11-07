@@ -2,6 +2,7 @@ import { ApolloServer, gql } from "apollo-server-lambda";
 import express from "express";
 import { GraphQLScalarType, Kind } from "graphql";
 import { GraphQLUpload, graphqlUploadExpress } from "graphql-upload";
+import cookieParser from "cookie-parser";
 import * as Sentry from "@sentry/serverless";
 import Query from "../resolvers/Query";
 import Mutation from "../resolvers/Mutation";
@@ -20,9 +21,10 @@ const typeDefs = gql`
     firstName: String!
     lastName: String!
     email: String!
+    username: String!
+    password: String!
     profilePicture: String
     bio: String
-    role: String
   }
 
   input PersonInput {
@@ -206,9 +208,9 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ event }) => ({
+  context: async ({ event, express: { req } }) => ({
     headers: event.headers,
-    ...createContext(),
+    ...(await createContext({ req })),
   }),
 });
 
@@ -216,6 +218,7 @@ export const handler = Sentry.AWSLambda.wrapHandler(
   server.createHandler({
     expressAppFromMiddleware(middleware) {
       const app = express();
+      app.use(cookieParser());
       app.use(graphqlUploadExpress());
       app.use(middleware);
       return app;
