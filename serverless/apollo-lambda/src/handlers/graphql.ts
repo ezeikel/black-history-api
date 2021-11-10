@@ -17,6 +17,15 @@ const typeDefs = gql`
   scalar Date
   scalar Upload
 
+  enum ContributionType {
+    PERSON
+    MEDIA
+    FACT
+    EVENT
+    ORGANIZATION
+    MEMORIAL
+  }
+
   type SuccessMessage {
     message: String
   }
@@ -46,18 +55,6 @@ const typeDefs = gql`
     type: String!
     caption: String
     file: Upload!
-  }
-
-  input FactPeopleInput {
-    id: String!
-  }
-
-  input FactInput {
-    text: String!
-    sources: [String]
-    people: [FactPeopleInput]
-    location: LocationInput
-    media: [MediaInput]
   }
 
   input EventInput {
@@ -162,7 +159,7 @@ const typeDefs = gql`
 
   type Contribution {
     id: String!
-    type: String!
+    type: ContributionType!
     approved: Boolean!
     user: User!
   }
@@ -182,7 +179,13 @@ const typeDefs = gql`
     createUser(user: UserInput): User!
     signInUser(email: String!, password: String!): User!
     signOutUser: SuccessMessage!
-    createFact(fact: FactInput): Fact!
+    createFact(
+      text: String!
+      sources: [String!]!
+      people: [PersonInput!]
+      location: LocationInput
+      media: [MediaInput!]
+    ): Fact!
     createEvent(event: EventInput): Event!
     createOrganization(organization: OrganizationInput): Organization!
     createMedia(media: MediaInput): Media!

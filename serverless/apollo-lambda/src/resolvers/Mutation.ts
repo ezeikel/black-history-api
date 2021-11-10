@@ -1,12 +1,28 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Context } from "../context";
-import processUpload from "../utils/processUpload";
+import processFile from "../utils/processFile";
 
 enum OrganizationType {
   EDUCATIONAL = "EDUCATIONAL",
   COMMITTEE = "COMMITTEE",
   NOTSPECIFIED = "NOTSPECIFIED",
+}
+
+type ConnectArgs = { id: string };
+
+enum MediaType {
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+}
+
+enum ContributionType {
+  PERSON = "PERSON",
+  MEDIA = "MEDIA",
+  FACT = "FACT",
+  EVENT = "EVENT",
+  ORGANIZATION = "ORGANIZATION",
+  MEMORIAL = "MEMORIAL",
 }
 
 type Location = {
@@ -22,61 +38,58 @@ type Address = {
   postalCode: string;
 };
 
+type Person = {
+  firstName: string;
+  lastName: string;
+  alias: string;
+};
+
 type CreatePersonArgs = {
-  person: {
-    firstName: string;
-    lastName: string;
-    alias: string;
-  };
+  firstName: string;
+  lastName: string;
+  alias: string;
 };
 
 type CreateUserArgs = {
-  user: {
-    firstName: string;
-    lastName: string;
-    username: string;
-    email: string;
-    password: string;
-    bio?: string;
-  };
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  bio?: string;
 };
 
 type CreateFactArgs = {
-  fact: {
-    text: string;
-    sources: string[];
-    people?: { id: string }[];
-    locations?: { id: string }[];
-    media?: { id: string }[];
-  };
+  text: string;
+  sources: string[];
+  people?: Person[];
+  existingPeople?: ConnectArgs[];
+  locations?: Location[];
+  existingLocations?: ConnectArgs[];
+  media?: CreateMediaArgs[];
+  existingMedia?: ConnectArgs[];
 };
 
 type CreateEventArgs = {
-  event: {
-    name: string;
-    date: Date;
-    people?: { id: string }[];
-    locations?: { id: string }[];
-    media?: { id: string }[];
-  };
+  name: string;
+  date: Date;
+  people?: ConnectArgs[];
+  locations?: ConnectArgs[];
+  media?: ConnectArgs[];
 };
 
 type CreateOrganizationArgs = {
-  organization: {
-    name: string;
-    type?: OrganizationType;
-    headQuarters: Location;
-    website?: string;
-  };
+  name: string;
+  type?: OrganizationType;
+  headQuarters: Location;
+  website?: string;
 };
 
 type CreateMediaArgs = {
-  media: {
-    type: "IMAGE" | "VIDEO";
-    caption?: string;
-    location?: string;
-    file: any; // TODO:
-  };
+  type: MediaType;
+  caption?: string;
+  location?: string;
+  file: any; // TODO:
 };
 
 type SignInUserArgs = {
@@ -87,7 +100,7 @@ type SignInUserArgs = {
 const Mutations = {
   createPerson: async (
     parent: any,
-    { person: { firstName, lastName, alias } }: CreatePersonArgs,
+    { firstName, lastName, alias }: CreatePersonArgs,
     context: Context,
   ) => {
     const {
@@ -115,9 +128,7 @@ const Mutations = {
   },
   createUser: async (
     parent: any,
-    {
-      user: { firstName, lastName, email, bio, username, password },
-    }: CreateUserArgs,
+    { firstName, lastName, email, bio, username, password }: CreateUserArgs,
     context: Context,
   ) => {
     const lowerCaseEmail = email.toLowerCase();
@@ -210,13 +221,42 @@ const Mutations = {
   },
   createFact: async (
     parent: any,
-    { fact: { text, sources, people, locations, media } }: CreateFactArgs,
+    {
+      text,
+      sources,
+      people,
+      existingPeople,
+      locations,
+      existingLocations,
+      media,
+      existingMedia,
+    }: CreateFactArgs,
     context: Context,
   ) => {
     const {
       user: { id: userId },
     } = context;
     const contributionType = "FACT";
+    let processedMedia;
+
+    if (media) {
+      const tags = ["contributed_media"];
+
+      processedMedia = await Promise.all(
+        media.map(async singleMedia => {
+          const { url, publicId } = await processFile({
+            file: singleMedia.file,
+            tags,
+          });
+
+          return {
+            ...singleMedia,
+            url,
+            publicId,
+          };
+        }),
+      );
+    }
 
     // FYI: using connect for related array fields because connectOrCreate doesnt support multiple connects/creations - https://github.com/prisma/prisma/issues/5100
     // this means any array of related Models will have to be created beforehand by front end and their ids passed to this resolver
@@ -228,20 +268,49 @@ const Mutations = {
         sources,
         people: {
           connect:
-            people?.map(person => ({
+            existingPeople?.map(person => ({
               id: person.id,
+            })) || [],
+          create:
+            people?.map(person => ({
+              ...person,
+              contribution: {
+                create: {
+                  type: "PERSON" as ContributionType, // TODO: why do i need to cast this?
+                  user: {
+                    connect: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
             })) || [],
         },
         locations: {
           connect:
-            locations?.map(location => ({
+            existingLocations?.map(location => ({
               id: location.id,
             })) || [],
+          create: locations,
         },
         media: {
           connect:
-            media?.map(singleMedia => ({
+            existingMedia?.map(singleMedia => ({
               id: singleMedia.id,
+            })) || [],
+          create:
+            processedMedia?.map(singleProcessedMedia => ({
+              ...singleProcessedMedia,
+              contribution: {
+                create: {
+                  type: "MEDIA" as ContributionType, // TODO: why do i need to cast this?
+                  user: {
+                    connect: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
             })) || [],
         },
         contribution: {
@@ -259,7 +328,7 @@ const Mutations = {
   },
   createEvent: async (
     parent: any,
-    { event: { name, date, people, locations, media } }: CreateEventArgs,
+    { name, date, people, locations, media }: CreateEventArgs,
     context: Context,
   ) => {
     const {
@@ -304,9 +373,7 @@ const Mutations = {
   },
   createOrganization: async (
     parent: any,
-    {
-      organization: { name, type, headQuarters, website },
-    }: CreateOrganizationArgs,
+    { name, type, headQuarters, website }: CreateOrganizationArgs,
     context: Context,
   ) => {
     const {
@@ -337,38 +404,19 @@ const Mutations = {
   },
   createMedia: async (
     parent: any,
-    { media: { type, caption, file } }: CreateMediaArgs,
+    { type, caption, file }: CreateMediaArgs,
     context: Context,
   ) => {
     const {
       user: { id: userId },
     } = context;
-    let fileType;
+
     const contributionType = "MEDIA";
-    const { createReadStream, mimetype } = await file;
-
-    switch (mimetype) {
-      case "image/png":
-      case "image/jpg":
-      case "image/jpeg":
-      case "image/heic":
-        fileType = "image";
-        break;
-      case "video/mp4":
-      case "video/quicktime":
-        fileType = "video";
-        break;
-      default:
-        fileType = "image";
-        break;
-    }
-
     const tags = ["contributed_media"];
-    const folder = `uploads/media/${fileType}s`;
-    const { resultSecureUrl, publicId } = await processUpload({
-      file: { createReadStream, fileType },
+
+    const { url, publicId } = await processFile({
+      file,
       tags,
-      folder,
     });
 
     return context.prisma.media.create({
@@ -376,7 +424,7 @@ const Mutations = {
         type,
         caption,
         publicId,
-        url: resultSecureUrl,
+        url,
         // location: {
         //   connect: {
         //     id: location,
