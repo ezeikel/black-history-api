@@ -248,9 +248,11 @@ const Mutations = {
             file: singleMedia.file,
             tags,
           });
+          const { type, caption } = singleMedia;
 
           return {
-            ...singleMedia,
+            type,
+            caption,
             url,
             publicId,
           };
