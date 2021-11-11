@@ -187,7 +187,12 @@ const typeDefs = gql`
       headQuarters: LocationInput!
       website: String
     ): Organization!
-    createMedia(type: String!, caption: String, file: Upload!): Media!
+    createMedia(
+      type: String!
+      caption: String
+      file: Upload!
+      location: LocationInput
+    ): Media!
   }
 `;
 

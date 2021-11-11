@@ -88,7 +88,8 @@ type CreateOrganizationArgs = {
 type CreateMediaArgs = {
   type: MediaType;
   caption?: string;
-  location?: string;
+  location?: Location;
+  existingLocation?: ConnectArgs;
   file: any; // TODO:
 };
 
@@ -406,7 +407,7 @@ const Mutations = {
   },
   createMedia: async (
     parent: any,
-    { type, caption, file }: CreateMediaArgs,
+    { type, caption, file, location, existingLocation }: CreateMediaArgs,
     context: Context,
   ) => {
     const {
@@ -427,11 +428,12 @@ const Mutations = {
         caption,
         publicId,
         url,
-        // location: {
-        //   connect: {
-        //     id: location,
-        //   },
-        // },
+        location: {
+          connect: {
+            id: existingLocation?.id,
+          },
+          create: location,
+        },
         contribution: {
           create: {
             type: contributionType,
