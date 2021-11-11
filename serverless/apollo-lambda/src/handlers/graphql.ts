@@ -26,24 +26,28 @@ const typeDefs = gql`
     MEMORIAL
   }
 
-  type SuccessMessage {
-    message: String
+  enum OrganizationType {
+    EDUCATIONAL
+    COMMITTEE
+    NOTSPECIFIED
   }
 
-  input UserInput {
-    firstName: String!
-    lastName: String!
-    email: String!
-    username: String!
-    password: String!
-    profilePicture: String
-    bio: String
+  type SuccessMessage {
+    message: String
   }
 
   input PersonInput {
     firstName: String
     lastName: String
     alias: String
+  }
+
+  input AddressInput {
+    firstLine: String!
+    secondLine: String
+    city: String!
+    country: String!
+    postalCode: String!
   }
 
   input LocationInput {
@@ -55,24 +59,6 @@ const typeDefs = gql`
     type: String!
     caption: String
     file: Upload!
-  }
-
-  input EventInput {
-    name: String!
-    date: Date!
-  }
-
-  input OrganizationInput {
-    name: String!
-    headQuarters: LocationInput!
-  }
-
-  input AddressInput {
-    firstLine: String!
-    secondLine: String
-    city: String!
-    country: String!
-    postalCode: String!
   }
 
   type Person {
@@ -175,8 +161,16 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createPerson(person: PersonInput): Person!
-    createUser(user: UserInput): User!
+    createPerson(firstName: String, lastName: String, alias: String): Person!
+    createUser(
+      firstName: String!
+      lastName: String!
+      email: String!
+      username: String!
+      password: String!
+      profilePicture: String
+      bio: String
+    ): User!
     signInUser(email: String!, password: String!): User!
     signOutUser: SuccessMessage!
     createFact(
@@ -186,9 +180,14 @@ const typeDefs = gql`
       location: LocationInput
       media: [MediaInput!]
     ): Fact!
-    createEvent(event: EventInput): Event!
-    createOrganization(organization: OrganizationInput): Organization!
-    createMedia(media: MediaInput): Media!
+    createEvent(name: String!, date: Date!): Event!
+    createOrganization(
+      name: String!
+      type: OrganizationType!
+      headQuarters: LocationInput!
+      website: String
+    ): Organization!
+    createMedia(type: String!, caption: String, file: Upload!): Media!
   }
 `;
 

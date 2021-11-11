@@ -9,8 +9,6 @@ enum OrganizationType {
   NOTSPECIFIED = "NOTSPECIFIED",
 }
 
-type ConnectArgs = { id: string };
-
 enum MediaType {
   IMAGE = "IMAGE",
   VIDEO = "VIDEO",
@@ -24,6 +22,8 @@ enum ContributionType {
   ORGANIZATION = "ORGANIZATION",
   MEMORIAL = "MEMORIAL",
 }
+
+type ConnectArgs = { id: string };
 
 type Location = {
   address?: Address;
