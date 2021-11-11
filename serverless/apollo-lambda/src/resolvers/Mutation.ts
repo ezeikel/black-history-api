@@ -422,6 +422,9 @@ const Mutations = {
       tags,
     });
 
+    // TODO: this doesnt work in production
+    // TODO: allow adding multiple files - might be a new ticket
+
     return context.prisma.media.create({
       data: {
         type,
@@ -429,9 +432,11 @@ const Mutations = {
         publicId,
         url,
         location: {
-          connect: {
-            id: existingLocation?.id,
-          },
+          connect: existingLocation
+            ? {
+                id: existingLocation?.id,
+              }
+            : {},
           create: location,
         },
         contribution: {
