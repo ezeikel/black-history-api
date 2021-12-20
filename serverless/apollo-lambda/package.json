@@ -1,8 +1,8 @@
 {
   "name": "black-history-api",
-  "description": "",
-  "author": "hi@ezeikel.dev",
   "version": "1.0.0",
+  "author": "hi@ezeikel.dev",
+  "license": "ISC",
   "scripts": {
     "dev": "yarn prisma:generate && sls offline --aws-profile ezeikel-admin",
     "lint": "jest --config test/jest.lint.js",

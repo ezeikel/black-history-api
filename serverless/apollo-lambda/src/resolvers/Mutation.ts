@@ -261,10 +261,6 @@ const Mutations = {
       );
     }
 
-    // FYI: using connect for related array fields because connectOrCreate doesnt support multiple connects/creations - https://github.com/prisma/prisma/issues/5100
-    // this means any array of related Models will have to be created beforehand by front end and their ids passed to this resolver
-    // TODO: solution for above here - https://github.com/prisma/prisma/discussions/8851
-
     return context.prisma.fact.create({
       data: {
         text,
@@ -273,7 +269,7 @@ const Mutations = {
           connect:
             existingPeople?.map(person => ({
               id: person.id,
-            })) || [],
+            })) || undefined,
           create:
             people?.map(person => ({
               ...person,
@@ -287,20 +283,20 @@ const Mutations = {
                   },
                 },
               },
-            })) || [],
+            })) || undefined,
         },
         locations: {
           connect:
             existingLocations?.map(location => ({
               id: location.id,
-            })) || [],
+            })) || undefined,
           create: locations,
         },
         media: {
           connect:
             existingMedia?.map(singleMedia => ({
               id: singleMedia.id,
-            })) || [],
+            })) || undefined,
           create:
             processedMedia?.map(singleProcessedMedia => ({
               ...singleProcessedMedia,
@@ -314,7 +310,7 @@ const Mutations = {
                   },
                 },
               },
-            })) || [],
+            })) || undefined,
         },
         contribution: {
           create: {
@@ -347,19 +343,19 @@ const Mutations = {
           connect:
             people?.map(person => ({
               id: person.id,
-            })) || [],
+            })) || undefined,
         },
         locations: {
           connect:
             locations?.map(location => ({
               id: location.id,
-            })) || [],
+            })) || undefined,
         },
         media: {
           connect:
             media?.map(singleMedia => ({
               id: singleMedia.id,
-            })) || [],
+            })) || undefined,
         },
         contribution: {
           create: {
@@ -405,6 +401,7 @@ const Mutations = {
       },
     });
   },
+  // TODO: make a createBatchMedia resolver for uploading multiple files
   createMedia: async (
     parent: any,
     { type, caption, file, location, existingLocation }: CreateMediaArgs,
@@ -421,8 +418,6 @@ const Mutations = {
       file,
       tags,
     });
-
-    // TODO: allow adding multiple files - might be a new ticket
 
     return context.prisma.media.create({
       data: {
