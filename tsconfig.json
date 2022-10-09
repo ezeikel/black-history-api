@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "preserveConstEnums": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false, // TODO: enable this
     "inlineSources": true,
     "inlineSourceMap": true,
     "sourceRoot": "/",

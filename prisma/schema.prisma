@@ -1,12 +1,11 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
 }
 
 enum MediaType {
@@ -42,14 +41,14 @@ enum ContributionType {
 }
 
 model User {
-  id               String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   firstName        String
   lastName         String
   email            String         @unique
   username         String         @unique
   password         String
   role             Role?          @default(USER)
-  profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
+  profilePicture   Media?         @relation(fields: [profilePictureId], references: [id], onDelete: SetNull, onUpdate: SetNull)
   profilePictureId String?        @unique @db.ObjectId
   bio              String?
   gender           Gender         @default(value: NOTSPECIFIED)
@@ -63,7 +62,7 @@ model User {
 }
 
 model Person {
-  id               String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   firstName        String? // TODO: one of these 3 fields should have a value
   lastName         String?
   alias            String?
@@ -76,20 +75,21 @@ model Person {
   causeOfDeath     String?
   restingPlace     Location?      @relation("RestingPlace", fields: [restingPlaceId], references: [id])
   restingPlaceId   String?        @unique @db.ObjectId
-  education        Organization[]
+  education        Organization[] @relation(fields: [educationIds], references: [id])
+  educationIds     String[]       @db.ObjectId
   occuptation      String?
   knownFor         String?
   awards           Award[]
-  memorials        Memorial[]     @relation(fields: [memorialIds])
-  memorialIds      String[]       @db.Array(ObjectId)
-  media            Media[]        @relation("PersonMedia", fields: [mediaIds])
-  mediaIds         String[]       @db.Array(ObjectId)
+  memorials        Memorial[]     @relation(fields: [memorialIds], references: [id])
+  memorialIds      String[]       @db.ObjectId
+  media            Media[]        @relation("PersonMedia", fields: [mediaIds], references: [id])
+  mediaIds         String[]       @db.ObjectId
   profilePicture   Media?         @relation("PersonProfilePicture", fields: [profilePictureId], references: [id])
   profilePictureId String?        @unique @db.ObjectId
-  events           Event[]        @relation(fields: [eventIds])
-  eventIds         String[]       @db.Array(ObjectId)
-  facts            Fact[]         @relation(fields: [factIds])
-  factIds          String[]       @db.Array(ObjectId)
+  events           Event[]        @relation(fields: [eventIds], references: [id])
+  eventIds         String[]       @db.ObjectId
+  facts            Fact[]         @relation(fields: [factIds], references: [id])
+  factIds          String[]       @db.ObjectId
   contribution     Contribution   @relation(fields: [contributionId], references: [id])
   contributionId   String         @db.ObjectId
   createdAt        DateTime       @default(now())
@@ -99,22 +99,22 @@ model Person {
 }
 
 model Media {
-  id                   String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id                   String       @id @default(auto()) @map("_id") @db.ObjectId
   type                 MediaType
   caption              String?
   url                  String
   publicId             String
-  event                Event?       @relation(fields: [eventId], references: [id])
+  event                Event?       @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   eventId              String?      @db.ObjectId
-  fact                 Fact?        @relation(fields: [factId], references: [id])
+  fact                 Fact?        @relation(fields: [factId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   factId               String?      @db.ObjectId
-  location             Location?    @relation(fields: [locationId], references: [id])
+  location             Location?    @relation(fields: [locationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   locationId           String?      @db.ObjectId
-  personMedia          Person[]     @relation("PersonMedia", fields: [personIds])
-  personIds            String[]     @db.Array(ObjectId)
+  personMedia          Person[]     @relation("PersonMedia", fields: [personIds], references: [id])
+  personIds            String[]     @db.ObjectId
   personProfilePicture Person?      @relation("PersonProfilePicture")
   userProfilePicture   User?
-  contribution         Contribution @relation(fields: [contributionId], references: [id])
+  contribution         Contribution @relation(fields: [contributionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   contributionId       String       @db.ObjectId
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -123,13 +123,13 @@ model Media {
 }
 
 model Fact {
-  id             String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   text           String
-  sources        String[]     @db.Array(String)
-  people         Person[]     @relation(fields: [personIds])
-  personIds      String[]     @db.Array(ObjectId)
-  locations      Location[]   @relation(fields: [locationIds])
-  locationIds    String[]     @db.Array(ObjectId)
+  sources        String[]
+  people         Person[]     @relation(fields: [personIds], references: [id])
+  personIds      String[]     @db.ObjectId
+  locations      Location[]   @relation(fields: [locationIds], references: [id])
+  locationIds    String[]     @db.ObjectId
   media          Media[]
   contribution   Contribution @relation(fields: [contributionId], references: [id])
   contributionId String       @db.ObjectId
@@ -140,12 +140,12 @@ model Fact {
 }
 
 model Event {
-  id             String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   date           DateTime
   locations      Location[]
-  people         Person[]     @relation(fields: [personIds])
-  personIds      String[]     @db.Array(ObjectId)
+  people         Person[]     @relation(fields: [personIds], references: [id])
+  personIds      String[]     @db.ObjectId
   media          Media[]
   contribution   Contribution @relation(fields: [contributionId], references: [id])
   contributionId String       @db.ObjectId
@@ -156,15 +156,15 @@ model Event {
 }
 
 model Organization {
-  id             String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   type           OrganizationType @default(value: NOTSPECIFIED)
   headQuarters   Location         @relation(fields: [headQuartersId], references: [id])
   headQuartersId String           @db.ObjectId
   website        String?
   award          Award[]
-  Person         Person[]         @relation(fields: [personIds])
-  personIds      String[]         @db.Array(ObjectId)
+  Person         Person[]         @relation(fields: [personIds], references: [id])
+  personIds      String[]         @db.ObjectId
   contribution   Contribution     @relation(fields: [contributionId], references: [id])
   contributionId String           @db.ObjectId
   createdAt      DateTime         @default(now())
@@ -174,8 +174,8 @@ model Organization {
 }
 
 model Location {
-  id                 String         @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  coordinates        Float[]        @db.Array(Double) // TODO: should be of type Point when support lands in Prisma - https://docs.mongodb.com/manual/reference/geojson/
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  coordinates        Float[]
   address            Json? // TODO: should be an embedded type when support lands - https://www.notion.so/Prisma-Roadmap-50766227b779464ab98899accb98295f?p=59064796f8dc4beab2c3b69df56d2244 https://github.com/prisma/prisma/issues/1798#issuecomment-951256487
   media              Media[]
   event              Event?         @relation(fields: [eventId], references: [id])
@@ -183,8 +183,8 @@ model Location {
   organization       Organization[]
   award              Award[]
   memorial           Memorial[]
-  facts              Fact[]         @relation(fields: [factIds])
-  factIds            String[]       @db.Array(ObjectId)
+  facts              Fact[]         @relation(fields: [factIds], references: [id])
+  factIds            String[]       @db.ObjectId
   personPlaceOfBirth Person?        @relation("PlaceOfBirth")
   personRestingPlace Person?        @relation("RestingPlace")
   createdAt          DateTime       @default(now())
@@ -194,7 +194,7 @@ model Location {
 }
 
 model Award {
-  id             String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   awardedFor     String
   location       Location?    @relation(fields: [locationId], references: [id])
@@ -211,7 +211,7 @@ model Award {
 }
 
 model Memorial {
-  id             String       @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   location       Location     @relation(fields: [locationId], references: [id])
   locationId     String       @db.ObjectId
   designer       String
@@ -219,8 +219,8 @@ model Memorial {
   height         String?
   completionDate DateTime?
   openingDate    DateTime?
-  memorials      Person[]     @relation(fields: [dedicatedToIds])
-  dedicatedToIds String[]     @db.Array(ObjectId)
+  memorials      Person[]     @relation(fields: [dedicatedToIds], references: [id])
+  dedicatedToIds String[]     @db.ObjectId
   website        String?
   contribution   Contribution @relation(fields: [contributionId], references: [id])
   contributionId String       @db.ObjectId
@@ -231,7 +231,7 @@ model Memorial {
 }
 
 model Quote {
-  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   text      String
   quotee    User     @relation(fields: [userId], references: [id])
   userId    String   @db.ObjectId
@@ -242,10 +242,10 @@ model Quote {
 }
 
 model Contribution {
-  id            String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
   type          ContributionType
   approved      Boolean          @default(false)
-  user          User             @relation(fields: [userId], references: [id])
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId        String           @db.ObjectId
   people        Person[]
   media         Media[]
@@ -260,7 +260,7 @@ model Contribution {
 }
 
 model Edit {
-  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   approved  Boolean  @default(false)
   user      User     @relation(fields: [userId], references: [id])
   userId    String   @db.ObjectId

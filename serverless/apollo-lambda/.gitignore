@@ -1,5 +1,0 @@
-node_modules
-.serverless
-.build
-.webpack
-.webpackCache

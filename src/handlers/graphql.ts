@@ -227,6 +227,7 @@ const server = new ApolloServer({
   }),
 });
 
+// eslint-disable-next-line import/prefer-default-export
 export const handler = Sentry.AWSLambda.wrapHandler(
   server.createHandler({
     expressAppFromMiddleware(middleware) {

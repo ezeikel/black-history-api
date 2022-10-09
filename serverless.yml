@@ -1,0 +1,79 @@
+org: ezeikel
+app: black-history-api
+service: black-history-apollo-lambda
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  environment:
+    DATABASE_URL: ${param:database-url}
+    SENTRY_DSN: ${param:sentry-dsn}
+    CLOUDINARY_KEY: ${param:cloudinary-key}
+    CLOUDINARY_SECRET: ${param:cloudinary-secret}
+    APP_SECRET: ${param:app-secret}
+  apiGateway:
+    binaryMediaTypes:
+      - 'multipart/form-data'
+
+params:
+  prod:
+    frontend-url: 'https://blackhistory.fyi'
+    domain: 'api.blackhistory.fyi'
+  staging:
+    frontend-url: 'https://staging.blackhistory.fyi'
+    domain: 'staging.api.blackhistory.fyi'
+  dev:
+    frontend-url: 'https://develop.blackhistory.fyi'
+    domain: 'develop.api.blackhistory.fyi'
+
+plugins:
+  - serverless-webpack
+  - serverless-webpack-prisma
+  - serverless-offline-variables
+  - serverless-offline
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: ${param:domain}
+    basePath: graphql
+    createRoute53Record: true
+  serverless-offline:
+    printOutput: true
+    prefix: graphql
+    httpPort: 7000
+  webpack:
+    webpackConfig: "webpack.config.js" # Name of webpack configuration file
+    includeModules: true # Node modules configuration for packaging
+    packager: "yarn" # Packager that will be used to package your external modules
+    excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
+
+functions:
+  graphql:
+    handler: src/handlers/graphql.handler
+    events:
+      - http:
+          path: /
+          method: post
+          cors:
+            origins:
+              - https://*.blackhistory.fyi
+              - https://studio.apollographql.com
+            headers:
+              - Authorization
+              - Content-Type
+            allowCredentials: true
+      - http:
+          path: /
+          method: get
+          cors:
+            origins:
+              - https://*.blackhistory.fyi
+              - https://studio.apollographql.com
+            headers:
+              - Authorization
+              - Content-Type
+            allowCredentials: true
